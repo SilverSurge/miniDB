@@ -121,6 +121,10 @@ int main()
 
     // creating a relation
 
+    // keep the name and key unique for all the relations
+    // obviously, the rec_size should also change.
+    // we keep the records of fixed length
+
     int key = 11;
     int rec_size = sizeof(MySchema);
     char name[] = "MySchema";
