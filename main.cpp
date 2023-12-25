@@ -179,6 +179,7 @@ int main()
     */
 
 
+    
     /*
     // 3. RETRIEVE RECORDS 
 
@@ -195,6 +196,7 @@ int main()
 
     // what to do with the records
     MySchema_Applier_Printer *printer_ptr = new MySchema_Applier_Printer();
+    printf("count: %d\n", collection->count());// number of records
     collection->iterate(printer_ptr);
     collection->free(); // free to free the space
     */

@@ -47,3 +47,15 @@ void Collection::free()
     head = nullptr;
     tail = nullptr;
 }
+
+int Collection::count()
+{
+    int cnt = 0;
+    RecordLL *h = head;
+    while(h)
+    {
+        cnt++;
+        h = h->next;
+    }
+    return cnt;
+}

@@ -31,5 +31,7 @@ public:
     void free();
     // NOTE we can't free a void* ptr so the user needs to create a delete applier
 
+    // number of records
+    int count();
 };
 #endif // COLLECTION_HPP
