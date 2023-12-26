@@ -1,6 +1,9 @@
 #ifndef SEMAPHORE_CONTROLLER_H
 #define SEMAPHORE_CONTROLLER_H
 
+#include "Dependencies.hpp"
+#include "StatusCodes.hpp"
+
 class SemaphoreController
 {
 private:
@@ -26,4 +29,5 @@ public:
     void unlock();
 };
 
+#include "SemaphoreController.inl"
 #endif // SEMAPHORE_CONTROLLER_H

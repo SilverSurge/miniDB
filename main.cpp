@@ -1,12 +1,16 @@
 #include "miniDB/miniDB.hpp"
+
 #include <stdio.h>
 
-// creating a SCHEMA
+// 1. Create Your Own Schema
+// NOTE: KEEP THE SCHEMA OF FIXED LENGTH
 class MySchema:public Schema
 {
 private:
     int price;
 public:
+    // NOTE: always keep empty constructor
+    MySchema():Schema(){}
     MySchema(int _id, bool _is_valid, int _price): Schema(_id, _is_valid)
     {
         price = _price;
@@ -31,73 +35,49 @@ public:
     }
 };
 
-// creating a DELETE APPLIER very necessary
-class MySchema_DeleteApplier: public Applier
+// 2. Create Filters
+template <class T>
+class Filter_Allower: public Filter<T>
 {
 public:
-    void apply(void *_rec)
-    {
-        // do it similarly for every other schema
-        MySchema* ms_ptr = (MySchema*)(_rec);
-        delete ms_ptr;
-    }
-};
-
-// creating some Filters
-class Allower: public Filter
-{
-public:
-    bool filter(void* _rec)
+    bool filter(T* _rec) override
     {
         return true;
     }
 };
 
-class MySchema_Filter_EvenIndex: public Filter 
+class MySchema_Filter_EvenIndex: public Filter<MySchema> 
 {
 public:
-    bool filter(void* _rec)
+    bool filter(MySchema* _rec) override
     {
-        MySchema ms = *(MySchema*)(_rec);
-        // don't change above
-
-        if(ms.get_id() % 2 == 0)
+        if(_rec->get_id() % 2 == 0)
             return true;
         return false;
     }
 };
 
-
-// creating some modifiers
-class MySchema_Modifier_Doubler: public Modifier
+// 3. Create Appliers
+class MySchema_Applier_Printer: public Applier<MySchema>
 {
 public:
-    void modify(void* &_rec)
+    void apply(MySchema* _rec) override
     {
-        MySchema ms = *(MySchema*)(_rec);
-        // don't change above
-
-        ms.set_price(2*ms.get_price());
-        
-        // don't change below
-        MySchema *msptr = (MySchema*)(_rec);
-        *msptr = ms;
+        _rec->display();
     }
 };
 
-// creating some applier
-class MySchema_Applier_Printer: public Applier
+
+// 3. Modifiers
+class MySchema_Modifier_Doubler: public Modifier<MySchema>
 {
 public:
-    void apply(void *_rec)
+    void modify(MySchema* _in_rec, MySchema* _out_rec) override
     {
-        MySchema ms = *(MySchema*)(_rec);
-        // dont change above
-
-        ms.display();
+        // don't free the _out_rec
+        _out_rec->set_price(_in_rec->get_price() * 2);
     }
 };
-
 
 int main()
 {
@@ -106,36 +86,27 @@ int main()
     // uncomment a section [while keeping other sections commented]
     // ONE and Only One Section should be uncommented at a time
     // build the executable using
-    // $ g++ main.cpp ./miniDB/*.cpp
+    // $ g++ main.cpp
     // run a.out using
     // $ a.out
     //-------------------------------------------------
 
     //-------------------------------------------------
     // 1. create a class MySchema extending Schema
-    // 2. create class MySchema_DeleteApplier extending Applier, 
-    //      it is compulsory, just to free the array
-    // 3. create Filters, Modifiers, Appliers for your Application
-    // 4. start using miniDB.
+    // 2. create Filters, Modifiers, Appliers for your Application
+    // 3. start using miniDB.
     //-------------------------------------------------
 
-    // creating a relation
-
-    // keep the name and key unique for all the relations
-    // obviously, the rec_size should also change.
-    // we keep the records of fixed length
-
-    int key = 11;
-    int rec_size = sizeof(MySchema);
-    char name[] = "MySchema";
-    Relation relation(key, rec_size, name);
+    // creating a relation (basically a table)
+    int key = 11;                           // should be unique for each relation
+    char name[] = "MySchema";               // should be unique for each relation, fix this
+    Relation<MySchema> relation(key, name); 
     // connect to the database
-    relation.connect(); 
+    relation.connect();         // everything is done between a [connect, disconnect] block
 
-    
-    
+
     /*
-    // 1. CREATE RECORDS - A
+    // 1. Create Records - A
 
     // create some instances
     int id = 1;
@@ -145,21 +116,21 @@ int main()
     MySchema obj4(id++, true, 40);
 
     // create_records
-    relation.create_record((void*)&obj1);
-    relation.create_record((void*)&obj2);
-    relation.create_record((void*)&obj3);
-    relation.create_record((void*)&obj4);
+    relation.create_record(&obj1);
+    relation.create_record(&obj2);
+    relation.create_record(&obj3);
+    relation.create_record(&obj4);
 
     // note in ./relations, on looking on the file sizes using 
     // $ll relations
     // db file has 96 and backup file has 0, this means nothing has been saved
     // that is until commit()
-
     */
-    
 
+
+    
     /*
-    // 2. CREATE RECORDS - B
+    // 2. Create Records - B
 
     // create some instances
     int id = 1;
@@ -169,10 +140,10 @@ int main()
     MySchema obj4(id++, true, 40);
 
     // create_records
-    relation.create_record((void*)&obj1);
-    relation.create_record((void*)&obj2);
-    relation.create_record((void*)&obj3);
-    relation.create_record((void*)&obj4);
+    relation.create_record(&obj1);
+    relation.create_record(&obj2);
+    relation.create_record(&obj3);
+    relation.create_record(&obj4);
 
     // commit
     relation.commit();
@@ -182,60 +153,48 @@ int main()
     // this means changes have been saved
     */
 
-
-    
     /*
-    // 3. RETRIEVE RECORDS 
+    // 3. Retrieve Records 
 
     // things for retireval 
-    // a delete applier for the collection
-    MySchema_DeleteApplier *da_ptr = new MySchema_DeleteApplier();
-    // a collection
-    Collection *collection = new Collection(da_ptr);
-    // a filter
-    Allower *allower = new Allower();
+    Filter_Allower<MySchema> allower;       // a filter
+    Collection<MySchema> collection;        // a collection
+    relation.retrieve_record(&allower, &collection);
 
-    // retrieve the records
-    relation.retrieve_record(allower, collection);
+    MySchema_Applier_Printer printer;       // an applier
+    collection.iterate(&printer);           // iterate over the filtered records
+    collection.free();                      // free the memory if not required
 
-    // what to do with the records
-    MySchema_Applier_Printer *printer_ptr = new MySchema_Applier_Printer();
-    printf("count: %d\n", collection->count());// number of records
-    collection->iterate(printer_ptr);
-    collection->free(); // free to free the space
     */
-    
 
     /*
     // 4. Updating Records - A
 
     // things for modifying
     // a filter
-    MySchema_Filter_EvenIndex *ei_ptr = new MySchema_Filter_EvenIndex();
-    // a modifier
-    MySchema_Modifier_Doubler *dbl_ptr = new MySchema_Modifier_Doubler();
-
-    relation.update_record(ei_ptr, dbl_ptr);
+    MySchema_Filter_EvenIndex evenidx;      // a filter
+    MySchema_Modifier_Doubler dbl;          // a modifier
+    relation.update_record(&evenidx, &dbl);
     relation.commit();
+
     // note if you don't commit it wont save things 
     // the changes will last until the execution completes,
     // if you disconnect and then connect again, everything will be lost.
 
     */
-   
+
     // 5. Updating Records - B
     // run the Retrieving Records again. you will see a difference in the output
+
 
     /*
     // 6. Deleting Records - A
 
     // things for deleting
-    // a filter
-    MySchema_Filter_EvenIndex *msfei_ptr = new MySchema_Filter_EvenIndex();
-
-    // delete the record
-    relation.delete_record(msfei_ptr);
+    MySchema_Filter_EvenIndex evenidx;      // a filter
+    relation.delete_record(&evenidx);
     relation.commit();
+
     // note if you don't commit it wont save things 
     // the changes will last until the execution completes,
     // if you disconnect and then connect again, everything will be lost.
@@ -257,7 +216,7 @@ int main()
     relation.commit(); // remember the importance of commit
     */
 
-
+    // disconnect
     relation.disconnect();
     return 0;
 }

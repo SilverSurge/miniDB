@@ -1,8 +1,8 @@
 #ifndef SCHEMA_HPP
 #define SCHEMA_HPP
 
-#include <stdio.h>
-#include <string.h>
+#include "Dependencies.hpp"
+#include "StatusCodes.hpp"
 
 class Schema
 {
@@ -10,6 +10,9 @@ protected:
     int id;
     bool is_valid;
 public:
+
+    // empty constructor [complete]
+    Schema(){is_valid = false;}
 
     // constructor [complete]
     Schema(int _id, bool _is_valid);
@@ -27,5 +30,6 @@ public:
     virtual void display();
 };
 
+#include "Schema.inl"
 
 #endif // SCHEMA_HPP

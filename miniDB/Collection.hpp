@@ -1,37 +1,44 @@
 #ifndef COLLECTION_HPP
 #define COLLECTION_HPP
 
+#include "Schema.hpp"
 #include "RecordLL.hpp"
-#include "StatusCodes.hpp"
 #include "Applier.hpp"
+#include "Dependencies.hpp"
+#include "StatusCodes.hpp"
 
+template<class T>
 class Collection
 {
+// assert
+static_assert(std::is_base_of<Schema, T>::value, "Collection<T> - T must be Schema or any of it's derived class");
+ 
 private:
-    RecordLL *head;
-    RecordLL *tail;
-    Applier  *delete_applier;
+    RecordLL<T> *head;
+    RecordLL<T> *tail;
 public:
 
     // constructor [complete]
-    Collection(Applier* _delete_applier)
+    Collection()
     {
         head = nullptr;
         tail = nullptr;
-        delete_applier = _delete_applier;
     }
 
     // add record at the end [complete]
-    void add(RecordLL* _rec_ll);
+    void add(RecordLL<T> *_rec_ll);
 
     // apply some method over the applier [complete]
-    void iterate(Applier* _applier);
+    void iterate(Applier<T> *_applier);
     
     // free the complete linked list [complete]
     void free();
     // NOTE we can't free a void* ptr so the user needs to create a delete applier
 
-    // number of records
+    // number of records [complete]
     int count();
 };
+
+#include "Collection.inl"
+
 #endif // COLLECTION_HPP
