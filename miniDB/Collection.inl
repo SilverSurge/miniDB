@@ -67,3 +67,9 @@ int Collection<T>::count()
     }
     return cnt;
 }
+
+template <class T>
+RecordLL<T>* Collection<T>::get_head()
+{
+    return head;
+}

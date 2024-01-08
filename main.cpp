@@ -104,7 +104,11 @@ int main()
     // connect to the database
     relation.connect();         // everything is done between a [connect, disconnect] block
 
+    // between connect blocks comes transaction blocks
+    relation.begin_transaction();
+    // relation.end_transaction(); one at the end
 
+    
     /*
     // 1. Create Records - A
 
@@ -164,7 +168,6 @@ int main()
     MySchema_Applier_Printer printer;       // an applier
     collection.iterate(&printer);           // iterate over the filtered records
     collection.free();                      // free the memory if not required
-
     */
 
     /*
@@ -217,6 +220,10 @@ int main()
     */
 
     // disconnect
+
+    // ending the transaction
+    relation.end_transaction();
+
     relation.disconnect();
     return 0;
 }

@@ -94,9 +94,6 @@ int Relation<T>::disconnect()
 template <class T>
 int Relation<T>::create_record(T* _rec)
 {
-    // concurrency control
-    semctrl.lock();
-
     // creating the record
 
     // no file discriptor available
@@ -124,17 +121,12 @@ int Relation<T>::create_record(T* _rec)
         return FAILURE;
     }
 
-    // concurrency control
-    semctrl.unlock();
     return SUCCESS;
 }
 
 template <class T>
 int Relation<T>::retrieve_record(Filter<T>* _filter, Collection<T> *_collection)
 {
-    // concurrency control
-    semctrl.lock();
-
     // no file descriptor available
     if(fd == -1)
     {
@@ -185,17 +177,12 @@ int Relation<T>::retrieve_record(Filter<T>* _filter, Collection<T> *_collection)
         }
     }
     
-    // concurrency control
-    semctrl.unlock();
     return SUCCESS;
 }
 
 template <class T>
 int Relation<T>::update_record(Filter<T>* _filter, Modifier<T>* _modifier)
 {
-    // concurrency control
-    semctrl.lock();
-
     // no file descriptor available
     if(fd == -1)
     {
@@ -259,16 +246,12 @@ int Relation<T>::update_record(Filter<T>* _filter, Modifier<T>* _modifier)
         }
     }
 
-    // concurrency control
-    semctrl.unlock();
     return SUCCESS;
 }
 
 template <class T>
 int Relation<T>::delete_record(Filter<T>* _filter)
 {
-    // concurrency control
-    semctrl.lock();
 
     // no file descriptor available
     if(fd == -1)
@@ -330,17 +313,12 @@ int Relation<T>::delete_record(Filter<T>* _filter)
         }
     }
 
-    // concurrency control
-    semctrl.unlock();
     return SUCCESS;
 }
 
 template <class T>
 int Relation<T>::thrash()
 {
-    // concurrency control
-    semctrl.lock();
-
     // no file descriptor available
     if(fd == -1)
     {
@@ -441,17 +419,12 @@ int Relation<T>::thrash()
         return FAILURE;
     }
 
-    // concurrency control
-    semctrl.unlock();
     return SUCCESS;
 }
 
 template <class T>
 int Relation<T>::commit()
 {
-    // concurrency control
-    semctrl.lock();
-
     // setting up filenames
     char filename_1[64], filename_2[64];
 
@@ -474,6 +447,17 @@ int Relation<T>::commit()
         return FAILURE;
     }
 
-    semctrl.unlock();
     return SUCCESS;
+}
+
+template <class T>
+void Relation<T>::begin_transaction()
+{
+    semctrl.lock();
+}
+
+template <class T>
+void Relation<T>::end_transaction()
+{
+    semctrl.unlock();
 }

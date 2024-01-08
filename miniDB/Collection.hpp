@@ -37,6 +37,10 @@ public:
 
     // number of records [complete]
     int count();
+
+    // getting the head ptr [complete]
+    RecordLL<T>* get_head(); 
+    // for people who want to do the stuff without classes
 };
 
 #include "Collection.inl"

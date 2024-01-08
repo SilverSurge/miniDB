@@ -50,6 +50,11 @@ public:
 
     // backing up [complete]
     int commit();
+
+    // concept of transaction [complete]
+    void begin_transaction();
+    void end_transaction();
+
 };
 
 #include "Relation.inl"
