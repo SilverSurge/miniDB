@@ -9,7 +9,8 @@ I made a simple database service in C/C++ using various system calls and semapho
 5. The user can delete records using a filter. we use a deletion marker.
 6. It has a commit functionality.
 7. It has a thrash functionality which helps in reducing the memory used by tailoring all the records together.
-8. It uses semaphores, for concurrency control
+8. It uses semaphores, for concurrency control.
+9. It has a simple implementation of the concept of transactions.
 
 ## API usage
 The API is quite intuitive, and the detailed guide for the API is given in the `main.cpp` file. It just needs the C/C++ to work. to use miniDB. clone the repository and copy 
